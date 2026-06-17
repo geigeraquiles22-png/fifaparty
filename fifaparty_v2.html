@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFAPARTY — Floristería & Eventos de Lujo | República Dominicana</title>
+<meta name="description" content="Especialistas en arreglos florales exclusivos y decoración de eventos de lujo en República Dominicana.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+// CONFIG INLINE
+window.STORE_CONFIG = {
+  brandName: "FIFAPARTY",
+  ownerName: "Rosmery Ynfant",
+  tagline: "Floristería & Eventos de Lujo",
+  description: "Especialistas en arreglos florales exclusivos, decoración de eventos y detalles únicos. Cada creación es una obra de arte diseñada para los momentos más importantes de tu vida.",
+  whatsappNumber: "18294571121",
+  instagram1: "fifaparty",
+  instagram2: "rosemaryfloristeriard",
+  address: "Alma Rosa1, Pedro A. Pérez 13, República Dominicana",
+  adminPassword: "fifaparty2026",
+  colors: { primary: "#0A0A0A", surface: "#111111", accent: "#C9A84C", accentLight: "#E4D2A8", red: "#8B0000", redLight: "#C41E3A", cream: "#FDF8F3", textMain: "#FDF8F3", textMuted: "#8A8A8A" },
+  categories: [
+    { id: "eventos", name: "Eventos Exclusivos", description: "Decoración floral para bodas, cumpleaños y celebraciones de lujo" },
+    { id: "rosas", name: "Rosas Importadas", description: "Las rosas más frescas y elegantes del mercado" },
+    { id: "cajas", name: "Cajas & Arreglos", description: "Presentaciones únicas que impresionan desde el primer vistazo" },
+    { id: "globos", name: "Globos & Detalles", description: "Detalles que elevan cada momento especial" }
+  ],
+  testimonials: [
+    { text: "Rosmery transformó mi evento en algo absolutamente mágico. Cada detalle fue perfecto, mis invitados quedaron impresionados.", author: "Cliente FIFAPARTY" },
+    { text: "Las rosas importadas son de una calidad increíble. El arreglo duró semanas y llenó mi hogar de elegancia.", author: "Cliente FIFAPARTY" },
+    { text: "Contraté FIFAPARTY para la fiesta de mi esposo y superó todas mis expectativas. Definitivamente el mejor en RD.", author: "Cliente FIFAPARTY" }
+  ]
+};
+
+// SERVICIOS INLINE
+window.SERVICES_DATA = [
+  { id: 1, name: "Decoración de Eventos Premium", description: "Transformamos cualquier espacio en un escenario de lujo. Diseño floral completo para bodas, cumpleaños, aniversarios y celebraciones corporativas.", category: "eventos", featured: true, image: "" },
+  { id: 2, name: "Decoración para Bodas", description: "El día más especial merece la decoración más especial. Creamos ambientes únicos con flores frescas importadas.", category: "eventos", featured: false, image: "" },
+  { id: 3, name: "Eventos Corporativos", description: "Impresiona a tus socios y clientes con decoraciones florales de alta gama para lanzamientos y galas.", category: "eventos", featured: false, image: "" },
+  { id: 4, name: "Bouquet de Rosas Importadas", description: "Las rosas más finas del mundo, seleccionadas una a una y presentadas en un bouquet que dice todo sin palabras.", category: "rosas", featured: true, image: "" },
+  { id: 5, name: "Arreglo de Rosas Gigante", description: "Para los momentos que merecen impactar. Arreglos monumentales de rosas rojas importadas.", category: "rosas", featured: true, image: "" },
+  { id: 6, name: "Caja de Rosas de Lujo", description: "La presentación más elegante para las rosas más hermosas. Cajas negras con rosas importadas.", category: "cajas", featured: true, image: "" },
+  { id: 7, name: "Arreglo Personalizado", description: "Diseñamos el arreglo de tus sueños. Cuéntanos tu visión y la hacemos realidad.", category: "cajas", featured: false, image: "" },
+  { id: 8, name: "Decoración con Globos Premium", description: "Globos de corazón, arcos y estructuras elaboradas que llevan cualquier celebración al siguiente nivel.", category: "globos", featured: false, image: "" },
+  { id: 9, name: "Detalles & Regalos Únicos", description: "Pequeños gestos con gran impacto. Detalles únicos diseñados para sorprender y emocionar.", category: "globos", featured: false, image: "" }
+];
+</script>
+<script>
+  // Supabase config
+  const SUPABASE_URL = 'https://tijfounmgknzejdlmymw.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_35hx6BdVzYh1oTAiZSXJ1w_ebGfdMdB';
+  const TIENDA_ID = 'fifaparty';
+
+  async function sbFetch(path, options = {}) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        ...options.headers
+      }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  async function sbGuardarConfig(data) {
+    return sbFetch('config?id=eq.' + TIENDA_ID, {
+      method: 'PATCH', body: JSON.stringify({ data, updated_at: new Date().toISOString() })
+    }).catch(() => sbFetch('config', {
+      method: 'POST', body: JSON.stringify({ id: TIENDA_ID, data })
+    }));
+  }
+
+  async function sbCargarConfig() {
+    const rows = await sbFetch('config?id=eq.' + TIENDA_ID + '&select=data');
+    return rows?.[0]?.data || null;
+  }
+
+  async function sbGuardarServicios(servicios) {
+    await sbFetch('productos?tienda_id=eq.' + TIENDA_ID, { method: 'DELETE' });
+    if (servicios.length === 0) return;
+    const rows = servicios.map(s => ({ id: TIENDA_ID + '_' + s.id, tienda_id: TIENDA_ID, data: s }));
+    return sbFetch('productos', { method: 'POST', body: JSON.stringify(rows) });
+  }
+
+  async function sbCargarServicios() {
+    const rows = await sbFetch('productos?tienda_id=eq.' + TIENDA_ID + '&select=data');
+    return rows?.map(r => r.data) || [];
+  }
+
+  async function sbGuardarGaleria(gallery) {
+    return sbFetch('config?id=eq.' + TIENDA_ID + '_gallery', {
+      method: 'PATCH', body: JSON.stringify({ data: gallery, updated_at: new Date().toISOString() })
+    }).catch(() => sbFetch('config', {
+      method: 'POST', body: JSON.stringify({ id: TIENDA_ID + '_gallery', data: gallery })
+    }));
+  }
+
+  async function sbCargarGaleria() {
+    const rows = await sbFetch('config?id=eq.' + TIENDA_ID + '_gallery&select=data');
+    return rows?.[0]?.data || [];
+  }
+</script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['Playfair Display', 'serif'],
+          elegant: ['Cormorant Garamond', 'serif'],
+          sans: ['Jost', 'sans-serif']
+        },
+        colors: {
+          fp: { black: '#0A0A0A', surface: '#111111', gold: '#C9A84C', goldLight: '#E4D2A8', red: '#8B0000', redLight: '#C41E3A', cream: '#FDF8F3', muted: '#8A8A8A' }
+        }
+      }
+    }
+  };
+</script>
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Jost', sans-serif; background: #0A0A0A; }
+.font-display { font-family: 'Playfair Display', serif; }
+.font-elegant { font-family: 'Cormorant Garamond', serif; }
+[x-cloak] { display: none !important; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.smooth { transition: all 0.4s ease; }
+@keyframes petalFall { 0%{transform:translateY(-20px) rotate(0deg);opacity:0} 10%{opacity:1} 90%{opacity:.6} 100%{transform:translateY(100vh) rotate(720deg) translateX(60px);opacity:0} }
+@keyframes petalFloat { 0%{transform:translateY(-10px) rotate(0deg);opacity:0} 15%{opacity:.8} 85%{opacity:.5} 100%{transform:translateY(100vh) rotate(-540deg) translateX(-40px);opacity:0} }
+@media (prefers-reduced-motion: no-preference) {
+  .petal { position:fixed;pointer-events:none;z-index:1;font-size:14px;animation:petalFall linear infinite; }
+  .petal:nth-child(1){left:5%;animation-duration:8s;animation-delay:0s}
+  .petal:nth-child(2){left:15%;animation-duration:11s;animation-delay:2s;animation-name:petalFloat}
+  .petal:nth-child(3){left:28%;animation-duration:9s;animation-delay:4s}
+  .petal:nth-child(4){left:42%;animation-duration:13s;animation-delay:1s;animation-name:petalFloat}
+  .petal:nth-child(5){left:58%;animation-duration:10s;animation-delay:5s}
+  .petal:nth-child(6){left:70%;animation-duration:12s;animation-delay:3s;animation-name:petalFloat}
+  .petal:nth-child(7){left:82%;animation-duration:8.5s;animation-delay:6s}
+  .petal:nth-child(8){left:92%;animation-duration:11.5s;animation-delay:1.5s;animation-name:petalFloat}
+}
+@keyframes goldShimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+.gold-text { background:linear-gradient(90deg,#C9A84C 0%,#F0D898 35%,#C9A84C 50%,#A07830 70%,#C9A84C 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShimmer 5s linear infinite; }
+.gold-line { height:1px;background:linear-gradient(to right,transparent,#C9A84C 30%,#F0D898 50%,#C9A84C 70%,transparent); }
+.gold-line-short { height:1px;width:80px;background:linear-gradient(to right,#C9A84C,#F0D898,#C9A84C); }
+.reveal { opacity:0;transform:translateY(30px);transition:opacity .9s ease,transform .9s ease; }
+.reveal.visible { opacity:1;transform:translateY(0); }
+.card-luxury { background:linear-gradient(135deg,#111111,#0d0d0d);border:1px solid rgba(201,168,76,0.15);transition:all .4s ease; }
+.card-luxury:hover { border-color:rgba(201,168,76,0.5);box-shadow:0 20px 60px rgba(201,168,76,0.08);transform:translateY(-6px); }
+@keyframes scrollText { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.scroll-banner { animation:scrollText 22s linear infinite;white-space:nowrap; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+.live-dot { width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse-dot 2s infinite;display:inline-block; }
+.mobile-menu { transform:translateX(100%);transition:transform .35s ease; }
+.mobile-menu.open { transform:translateX(0); }
+.img-upload-zone { border:1.5px dashed rgba(201,168,76,.3);border-radius:12px;transition:all .3s ease;cursor:pointer; }
+.img-upload-zone:hover { border-color:rgba(201,168,76,.7);background:rgba(201,168,76,.03); }
+.step-active { background:#C9A84C;color:#0A0A0A; }
+.triangulum-badge { font-size:10px;color:rgba(201,168,76,.3);letter-spacing:.2em;transition:color .3s ease;text-decoration:none; }
+.triangulum-badge:hover { color:rgba(201,168,76,.7); }
+</style>
+</head>
+<body class="text-fp-cream antialiased" x-data="fifaApp()" x-init="init()" x-cloak>
+
+<!-- Carga directa sin spinner -->
+
+<div class="petal" aria-hidden="true">🌹</div>
+<div class="petal" aria-hidden="true">🌸</div>
+<div class="petal" aria-hidden="true">🌹</div>
+<div class="petal" aria-hidden="true">🌸</div>
+<div class="petal" aria-hidden="true">🌹</div>
+<div class="petal" aria-hidden="true">🌸</div>
+<div class="petal" aria-hidden="true">🌹</div>
+<div class="petal" aria-hidden="true">🌸</div>
+
+<!-- Banner scrolling -->
+<div class="bg-fp-red/90 text-fp-cream/90 py-2 overflow-hidden relative z-50" aria-hidden="true">
+  <div class="scroll-banner inline-flex gap-16 text-xs font-sans tracking-[.2em] uppercase">
+    <span>✦ Agenda disponible para eventos 2025</span>
+    <span>✦ Rosas importadas llegando esta semana</span>
+    <span>✦ Respondemos en minutos por WhatsApp</span>
+    <span>✦ Bodas · Quinceañeras · Eventos corporativos</span>
+    <span>✦ Agenda disponible para eventos 2025</span>
+    <span>✦ Rosas importadas llegando esta semana</span>
+    <span>✦ Respondemos en minutos por WhatsApp</span>
+    <span>✦ Bodas · Quinceañeras · Eventos corporativos</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="fixed top-6 inset-x-0 z-40 smooth" :class="scrolled ? 'top-0' : 'top-6'">
+  <div class="max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="flex items-center justify-between h-16 px-6 rounded-2xl smooth" :class="scrolled ? 'bg-fp-black/95 backdrop-blur-md border border-fp-gold/10' : 'bg-transparent'">
+      <a href="#inicio" class="font-display text-xl sm:text-2xl tracking-[.2em] gold-text font-bold">FIFAPARTY</a>
+      <div class="hidden md:flex items-center gap-10 text-xs font-sans tracking-[.2em] uppercase text-fp-muted">
+        <a href="#servicios" class="hover:text-fp-gold smooth">Servicios</a>
+        <a href="#galeria" class="hover:text-fp-gold smooth">Galería</a>
+        <a href="#nosotros" class="hover:text-fp-gold smooth">Nosotros</a>
+        <a href="#contacto" class="hover:text-fp-gold smooth">Contacto</a>
+        <button @click="adminOpen = true" class="opacity-20 hover:opacity-60 smooth" aria-label="Panel admin"><i data-lucide="settings" class="w-4 h-4"></i></button>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2 mr-2" aria-hidden="true">
+          <div class="live-dot"></div>
+          <span class="text-xs font-sans text-fp-muted/60 tracking-wider">En línea</span>
+        </div>
+        <a :href="waLink('Hola Rosmery! Me gustaría cotizar un servicio de FIFAPARTY.')" target="_blank" class="hidden sm:inline-flex items-center gap-2 border border-fp-gold/40 hover:border-fp-gold text-fp-gold hover:bg-fp-gold/10 px-6 py-2.5 rounded-full text-xs font-sans tracking-[.15em] uppercase smooth">
+          <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Cotizar
+        </a>
+        <button class="md:hidden p-2" @click="mobileMenu = true" aria-label="Abrir menú"><i data-lucide="menu" class="w-5 h-5 text-fp-gold"></i></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Menú mobile -->
+<div class="fixed inset-0 z-[70] bg-fp-black/80 backdrop-blur-sm md:hidden" x-show="mobileMenu" @click="mobileMenu = false" x-transition.opacity></div>
+<div class="mobile-menu fixed right-0 top-0 h-full w-72 bg-[#0d0d0d] border-l border-fp-gold/10 z-[80] flex flex-col p-8 md:hidden" :class="mobileMenu ? 'open' : ''">
+  <div class="flex justify-between items-center mb-10">
+    <span class="font-display text-fp-gold tracking-widest">FIFAPARTY</span>
+    <button @click="mobileMenu = false" aria-label="Cerrar"><i data-lucide="x" class="w-5 h-5 text-fp-muted"></i></button>
+  </div>
+  <nav class="flex flex-col gap-6 text-sm font-sans tracking-[.2em] uppercase text-fp-muted">
+    <a href="#servicios" @click="mobileMenu = false" class="hover:text-fp-gold smooth">Servicios</a>
+    <a href="#galeria" @click="mobileMenu = false" class="hover:text-fp-gold smooth">Galería</a>
+    <a href="#nosotros" @click="mobileMenu = false" class="hover:text-fp-gold smooth">Nosotros</a>
+    <a href="#contacto" @click="mobileMenu = false" class="hover:text-fp-gold smooth">Contacto</a>
+  </nav>
+  <a :href="waLink('Hola! Me gustaría cotizar un servicio de FIFAPARTY.')" target="_blank" class="mt-auto inline-flex items-center justify-center gap-2 bg-fp-gold text-fp-black px-6 py-4 rounded-full font-sans font-semibold text-sm tracking-[.15em] uppercase">
+    <i data-lucide="message-circle" class="w-4 h-4"></i> Cotizar ahora
+  </a>
+</div>
+
+<!-- HERO -->
+<section id="inicio" class="relative min-h-screen flex items-center overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-br from-fp-black via-[#0d0808] to-[#120a0a]"></div>
+  <div class="absolute top-1/4 -right-40 w-96 h-96 rounded-full border border-fp-gold/5 opacity-60"></div>
+  <div class="absolute bottom-1/4 -left-32 w-80 h-80 rounded-full border border-fp-red/5 opacity-50"></div>
+  <svg class="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] sm:w-[700px] opacity-[.04] pointer-events-none select-none" viewBox="0 0 300 300" fill="currentColor" style="color:#C9A84C" aria-hidden="true">
+    <circle cx="150" cy="150" r="60" fill="none" stroke="currentColor" stroke-width=".5"/>
+    <circle cx="150" cy="150" r="90" fill="none" stroke="currentColor" stroke-width=".3"/>
+    <circle cx="150" cy="150" r="120" fill="none" stroke="currentColor" stroke-width=".2"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" opacity=".6"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(45 150 150)" opacity=".5"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(90 150 150)" opacity=".6"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(135 150 150)" opacity=".5"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(180 150 150)" opacity=".6"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(225 150 150)" opacity=".5"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(270 150 150)" opacity=".6"/>
+    <path d="M150 90 Q180 120 150 150 Q120 120 150 90Z" transform="rotate(315 150 150)" opacity=".5"/>
+    <circle cx="150" cy="150" r="15" opacity=".4"/>
+  </svg>
+  <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-10 pt-36 pb-20 w-full">
+    <div class="max-w-3xl">
+      <p class="font-sans text-fp-gold text-xs tracking-[.4em] uppercase mb-6 reveal" data-reveal>República Dominicana · Eventos & Floristería</p>
+      <h1 class="font-display text-5xl sm:text-7xl lg:text-8xl leading-[1.05] tracking-tight mb-4 reveal" data-reveal>
+        <span class="gold-text">FIFA</span><span class="text-fp-cream">PARTY</span>
+      </h1>
+      <div class="gold-line-short mb-6 reveal" data-reveal></div>
+      <p class="font-elegant italic text-fp-cream/80 text-2xl sm:text-3xl lg:text-4xl mb-6 leading-snug reveal" data-reveal>Donde cada detalle<br>es una obra de arte</p>
+      <p class="font-sans text-fp-muted text-base sm:text-lg leading-relaxed mb-10 max-w-xl reveal" data-reveal>Especialistas en arreglos florales exclusivos y decoración de eventos de lujo. Creamos momentos únicos para quienes aprecian lo extraordinario.</p>
+      <div class="flex flex-wrap items-center gap-4 reveal" data-reveal>
+        <a :href="waLink('Hola Rosmery! Me gustaría cotizar un servicio de FIFAPARTY para un evento especial.')" target="_blank" class="inline-flex items-center gap-2.5 bg-fp-gold hover:bg-fp-goldLight text-fp-black px-8 py-4 rounded-full font-sans font-semibold text-sm tracking-[.15em] uppercase smooth shadow-xl shadow-fp-gold/20">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Cotizar mi evento
+        </a>
+        <a href="#galeria" class="inline-flex items-center gap-2 text-fp-cream/70 hover:text-fp-gold text-sm tracking-[.15em] uppercase smooth font-sans">Ver galería <i data-lucide="arrow-down" class="w-4 h-4"></i></a>
+      </div>
+      <div class="flex flex-wrap items-center gap-8 mt-14 pt-10 border-t border-fp-gold/10 reveal" data-reveal>
+        <div><p class="font-display text-3xl gold-text font-bold">37.5K</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase mt-1">Seguidores</p></div>
+        <div class="w-px h-10 bg-fp-gold/20" aria-hidden="true"></div>
+        <div><p class="font-display text-3xl gold-text font-bold">547+</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase mt-1">Eventos realizados</p></div>
+        <div class="w-px h-10 bg-fp-gold/20" aria-hidden="true"></div>
+        <div><p class="font-display text-3xl gold-text font-bold">100%</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase mt-1">Satisfacción</p></div>
+        <div class="w-px h-10 bg-fp-gold/20" aria-hidden="true"></div>
+        <div><p class="font-display text-3xl gold-text font-bold">&lt;5min</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase mt-1">Respuesta WA</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Barra categorías -->
+<section class="bg-[#080808] py-8 border-y border-fp-gold/10">
+  <div class="max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="flex flex-wrap justify-center gap-x-12 gap-y-3">
+      <template x-for="cat in store.categories" :key="cat.id">
+        <a :href="'#' + cat.id" class="font-sans text-xs tracking-[.25em] uppercase text-fp-muted hover:text-fp-gold smooth flex items-center gap-2">
+          <span class="text-fp-red">✦</span><span x-text="cat.name"></span>
+        </a>
+      </template>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS -->
+<section id="servicios" class="py-28 bg-fp-black">
+  <div class="max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="text-center mb-20 reveal" data-reveal>
+      <p class="font-sans text-fp-gold text-xs tracking-[.4em] uppercase mb-4">Lo que creamos</p>
+      <h2 class="font-display text-4xl sm:text-5xl lg:text-6xl text-fp-cream mb-5">Nuestros Servicios</h2>
+      <div class="gold-line w-48 mx-auto mb-5"></div>
+      <p class="font-elegant italic text-fp-muted text-xl">Cada creación es exclusiva. Cada momento, irrepetible.</p>
+    </div>
+    <template x-for="(group, gi) in groupedServices()" :key="group.category">
+      <div :id="group.categoryId" class="mb-20 reveal" data-reveal>
+        <div class="flex items-center gap-5 mb-10">
+          <div class="gold-line flex-1 max-w-[60px]"></div>
+          <h3 class="font-display text-2xl sm:text-3xl text-fp-cream" x-text="group.category"></h3>
+          <div class="gold-line flex-1"></div>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <template x-for="service in group.items" :key="service.id">
+            <div class="card-luxury rounded-2xl overflow-hidden group cursor-pointer" @click="openService(service)">
+              <div class="relative aspect-[4/3] bg-gradient-to-br from-[#0d0d0d] to-[#150808] flex items-center justify-center overflow-hidden">
+                <template x-if="service.image">
+                  <img :src="service.image" :alt="service.name" class="w-full h-full object-cover group-hover:scale-105 smooth">
+                </template>
+                <template x-if="!service.image">
+                  <svg class="w-24 h-24 text-fp-red/20 group-hover:text-fp-red/35 smooth" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">
+                    <path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" opacity=".8"/><path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(45 50 50)" opacity=".6"/>
+                    <path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(90 50 50)" opacity=".8"/><path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(135 50 50)" opacity=".6"/>
+                    <path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(180 50 50)" opacity=".8"/><path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(225 50 50)" opacity=".6"/>
+                    <path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(270 50 50)" opacity=".8"/><path d="M50 10 Q65 30 50 50 Q35 30 50 10Z" transform="rotate(315 50 50)" opacity=".6"/>
+                    <circle cx="50" cy="50" r="8" opacity=".5"/>
+                  </svg>
+                </template>
+                <div class="absolute inset-0 bg-gradient-to-t from-fp-black/80 to-transparent"></div>
+                <template x-if="service.featured">
+                  <span class="absolute top-4 right-4 text-[10px] font-sans tracking-[.2em] uppercase text-fp-gold border border-fp-gold/40 px-3 py-1 rounded-full bg-fp-black/60">Exclusivo</span>
+                </template>
+              </div>
+              <div class="p-6">
+                <h4 class="font-display text-lg text-fp-cream mb-2 group-hover:text-fp-gold smooth" x-text="service.name"></h4>
+                <p class="font-sans text-fp-muted text-sm leading-relaxed line-clamp-2 mb-5" x-text="service.description"></p>
+                <button @click.stop="openService(service)" class="inline-flex items-center gap-2 text-fp-gold text-xs font-sans tracking-[.15em] uppercase hover:gap-3 smooth">Cotizar <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</section>
+
+<!-- GALERÍA -->
+<section id="galeria" class="py-28 bg-[#080808] relative overflow-hidden">
+  <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-fp-gold/20 to-transparent"></div>
+  <div class="max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="text-center mb-16 reveal" data-reveal>
+      <p class="font-sans text-fp-gold text-xs tracking-[.4em] uppercase mb-4">Nuestro trabajo</p>
+      <h2 class="font-display text-4xl sm:text-5xl text-fp-cream mb-5">Creaciones recientes</h2>
+      <div class="gold-line w-48 mx-auto mb-5"></div>
+      <p class="font-elegant italic text-fp-muted text-xl">Cada foto cuenta una historia de amor y dedicación</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 reveal" data-reveal>
+      <template x-for="(img, idx) in gallery" :key="idx">
+        <div class="relative aspect-square rounded-xl overflow-hidden cursor-pointer group" @click="lightboxImg = img; lightboxOpen = true">
+          <img :src="img.url" :alt="img.caption || 'Creación FIFAPARTY'" class="w-full h-full object-cover group-hover:scale-110 smooth">
+          <div class="absolute inset-0 bg-fp-black/40 opacity-0 group-hover:opacity-100 smooth flex items-center justify-center">
+            <i data-lucide="zoom-in" class="w-8 h-8 text-fp-gold"></i>
+          </div>
+        </div>
+      </template>
+      <template x-if="gallery.length === 0">
+        <div class="col-span-full text-center py-16">
+          <i data-lucide="image" class="w-12 h-12 text-fp-muted/30 mx-auto mb-3"></i>
+          <p class="font-sans text-fp-muted/50 text-sm">Las fotos de tus creaciones aparecen acá.<br>Subílas desde el panel admin.</p>
+        </div>
+      </template>
+    </div>
+    <div class="text-center mt-10 reveal" data-reveal>
+      <a :href="`https://instagram.com/${store.instagram1}`" target="_blank" class="inline-flex items-center gap-2 border border-fp-gold/30 hover:border-fp-gold text-fp-gold hover:bg-fp-gold/10 px-8 py-3.5 rounded-full text-xs font-sans tracking-[.2em] uppercase smooth">
+        <i data-lucide="instagram" class="w-4 h-4"></i> Ver más en Instagram
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- NOSOTROS -->
+<section id="nosotros" class="py-28 bg-fp-black">
+  <div class="max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <div class="reveal" data-reveal>
+        <p class="font-sans text-fp-gold text-xs tracking-[.4em] uppercase mb-5">Nuestra historia</p>
+        <h2 class="font-display text-4xl sm:text-5xl text-fp-cream mb-6 leading-tight">La pasión hecha<br><em class="gold-text">arte floral</em></h2>
+        <div class="gold-line-short mb-8"></div>
+        <p class="font-sans text-fp-muted leading-relaxed text-base mb-6">FIFAPARTY nació de la visión de Rosmery Ynfant de crear experiencias florales que trascienden lo ordinario. Cada arreglo, cada evento, cada detalle es diseñado con la convicción de que la belleza no tiene límites.</p>
+        <p class="font-sans text-fp-muted leading-relaxed text-base mb-10">Trabajamos con las rosas más finas importadas del mundo y una dedicación absoluta al detalle. Nuestros clientes confían en nosotros para los momentos más importantes de sus vidas.</p>
+        <div class="flex flex-wrap gap-6">
+          <a :href="`https://instagram.com/${store.instagram1}`" target="_blank" class="inline-flex items-center gap-2 text-fp-gold border border-fp-gold/30 hover:border-fp-gold hover:bg-fp-gold/10 px-5 py-2.5 rounded-full text-xs font-sans tracking-[.15em] uppercase smooth"><i data-lucide="instagram" class="w-3.5 h-3.5"></i> @fifaparty</a>
+          <a :href="`https://instagram.com/${store.instagram2}`" target="_blank" class="inline-flex items-center gap-2 text-fp-muted border border-fp-muted/20 hover:border-fp-gold hover:text-fp-gold px-5 py-2.5 rounded-full text-xs font-sans tracking-[.15em] uppercase smooth"><i data-lucide="instagram" class="w-3.5 h-3.5"></i> @rosemaryfloristeriard</a>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 reveal" data-reveal>
+        <div class="card-luxury rounded-2xl p-8 text-center"><p class="font-display text-4xl gold-text font-bold mb-2">7+</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase">Años de experiencia</p></div>
+        <div class="card-luxury rounded-2xl p-8 text-center"><p class="font-display text-4xl gold-text font-bold mb-2">500+</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase">Eventos realizados</p></div>
+        <div class="card-luxury rounded-2xl p-8 text-center"><p class="font-display text-4xl gold-text font-bold mb-2">37K</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase">Comunidad</p></div>
+        <div class="card-luxury rounded-2xl p-8 text-center"><p class="font-display text-4xl gold-text font-bold mb-2">RD</p><p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase">Élite floral</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section class="py-24 bg-[#080808]">
+  <div class="max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="text-center mb-16 reveal" data-reveal>
+      <p class="font-sans text-fp-gold text-xs tracking-[.4em] uppercase mb-4">Lo que dicen</p>
+      <h2 class="font-display text-4xl sm:text-5xl text-fp-cream">Clientes que<br><em class="gold-text">confían en nosotros</em></h2>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-6">
+      <template x-for="t in store.testimonials" :key="t.text">
+        <div class="card-luxury rounded-2xl p-8 reveal" data-reveal>
+          <div class="flex gap-1 mb-6" aria-label="5 estrellas"><template x-for="i in 5"><span class="text-fp-gold text-sm" aria-hidden="true">★</span></template></div>
+          <p class="font-elegant italic text-fp-cream/90 text-lg leading-relaxed mb-6" x-text="`&ldquo;${t.text}&rdquo;`"></p>
+          <div class="gold-line-short mb-4"></div>
+          <p class="font-sans text-fp-muted text-xs tracking-[.15em] uppercase" x-text="t.author"></p>
+        </div>
+      </template>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO / FOOTER -->
+<footer id="contacto" class="bg-[#080808] border-t border-fp-gold/10 py-20 relative overflow-hidden">
+  <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-10">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal" data-reveal>
+      <p class="font-sans text-fp-gold text-xs tracking-[.4em] uppercase mb-5">Hablemos</p>
+      <h2 class="font-display text-4xl sm:text-5xl text-fp-cream mb-5">Hagamos algo<br><em class="gold-text">extraordinario</em></h2>
+      <p class="font-sans text-fp-muted leading-relaxed mb-8">Cuéntanos tu visión. Te respondemos por WhatsApp y creamos juntos el evento o arreglo que siempre soñaste.</p>
+      <a :href="waLink('Hola Rosmery! Me gustaría cotizar un servicio de FIFAPARTY.')" target="_blank" class="inline-flex items-center gap-3 bg-fp-gold hover:bg-fp-goldLight text-fp-black px-10 py-4 rounded-full font-sans font-semibold text-sm tracking-[.15em] uppercase smooth shadow-2xl shadow-fp-gold/20">
+        <i data-lucide="message-circle" class="w-5 h-5"></i> Cotizar por WhatsApp
+      </a>
+    </div>
+    <div class="gold-line mb-12"></div>
+    <div class="grid sm:grid-cols-3 gap-8 text-center sm:text-left">
+      <div>
+        <h4 class="font-display text-2xl gold-text mb-2">FIFAPARTY</h4>
+        <p class="font-elegant italic text-fp-muted">Donde cada detalle es una obra de arte</p>
+      </div>
+      <div class="space-y-3">
+        <a :href="`https://instagram.com/${store.instagram1}`" target="_blank" class="flex items-center justify-center sm:justify-start gap-2 text-fp-muted hover:text-fp-gold smooth text-sm"><i data-lucide="instagram" class="w-4 h-4 text-fp-gold" aria-hidden="true"></i> @fifaparty</a>
+        <a :href="`https://instagram.com/${store.instagram2}`" target="_blank" class="flex items-center justify-center sm:justify-start gap-2 text-fp-muted hover:text-fp-gold smooth text-sm"><i data-lucide="instagram" class="w-4 h-4 text-fp-gold" aria-hidden="true"></i> @rosemaryfloristeriard</a>
+        <p class="flex items-center justify-center sm:justify-start gap-2 text-fp-muted text-sm"><i data-lucide="map-pin" class="w-4 h-4 text-fp-gold" aria-hidden="true"></i><span x-text="store.address"></span></p>
+      </div>
+      <div class="flex flex-col items-center sm:items-start gap-3">
+        <button @click="adminOpen = true" class="text-fp-muted/30 hover:text-fp-muted/60 smooth text-xs font-sans tracking-widest uppercase flex items-center gap-1.5"><i data-lucide="settings" class="w-3.5 h-3.5" aria-hidden="true"></i> Panel</button>
+        <!-- GANCHO TRIANGULUM — se activa cuando conecten la tienda -->
+        <a href="#" class="triangulum-badge" title="Powered by Triangulum Sync">✦ Powered by Triangulum Sync</a>
+      </div>
+    </div>
+    <p class="text-center text-fp-muted/30 text-xs font-sans mt-10" x-text="`© ${new Date().getFullYear()} FIFAPARTY by Rosmery Ynfant. Todos los derechos reservados.`"></p>
+  </div>
+</footer>
+
+<!-- Botón flotante WA -->
+<a :href="waLink('Hola! Me gustaría cotizar un servicio de FIFAPARTY.')" target="_blank" class="fixed bottom-6 right-6 z-30 bg-fp-gold hover:bg-fp-goldLight text-fp-black p-4 rounded-full shadow-2xl shadow-fp-gold/30 smooth hover:scale-110" aria-label="Cotizar por WhatsApp">
+  <i data-lucide="message-circle" class="w-6 h-6"></i>
+</a>
+
+<!-- Lightbox galería -->
+<div x-show="lightboxOpen" x-transition.opacity class="fixed inset-0 z-[90] bg-fp-black/95 backdrop-blur-md flex items-center justify-center p-4" @click.self="lightboxOpen = false" @keydown.escape.window="lightboxOpen = false">
+  <template x-if="lightboxImg">
+    <div class="relative max-w-3xl w-full">
+      <img :src="lightboxImg.url" :alt="lightboxImg.caption || 'FIFAPARTY'" class="w-full rounded-2xl border border-fp-gold/20">
+      <template x-if="lightboxImg.caption">
+        <p class="text-center font-elegant italic text-fp-cream/70 mt-4" x-text="lightboxImg.caption"></p>
+      </template>
+      <button @click="lightboxOpen = false" class="absolute -top-4 -right-4 bg-fp-black border border-fp-gold/30 rounded-full p-2 text-fp-muted hover:text-fp-cream smooth" aria-label="Cerrar"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+  </template>
+</div>
+
+<!-- Modal cotización en 2 pasos -->
+<div x-show="selectedService" x-transition.opacity class="fixed inset-0 z-50 bg-fp-black/90 backdrop-blur-sm grid place-items-center p-4" @click.self="selectedService = null" @keydown.escape.window="selectedService = null">
+  <div x-show="selectedService" x-transition class="bg-[#0d0d0d] border border-fp-gold/20 rounded-3xl max-w-md w-full p-7 sm:p-8 relative" @click.stop>
+    <button @click="selectedService = null" class="absolute top-5 right-5 text-fp-muted hover:text-fp-cream smooth" aria-label="Cerrar"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <template x-if="selectedService">
+      <div>
+        <div class="flex items-center gap-2 mb-6">
+          <div class="w-6 h-6 rounded-full text-[10px] font-sans font-semibold flex items-center justify-center smooth" :class="quoteStep >= 1 ? 'step-active' : 'border border-fp-gold/20 text-fp-muted'">1</div>
+          <div class="h-px flex-1 bg-fp-gold/20"></div>
+          <div class="w-6 h-6 rounded-full text-[10px] font-sans font-semibold flex items-center justify-center smooth" :class="quoteStep === 2 ? 'step-active' : 'border border-fp-gold/20 text-fp-muted'">2</div>
+        </div>
+        <p class="font-sans text-fp-gold text-xs tracking-[.25em] uppercase mb-2" x-text="selectedService.category"></p>
+        <h3 class="font-display text-2xl sm:text-3xl text-fp-cream mb-3" x-text="selectedService.name"></h3>
+        <div class="gold-line-short mb-4"></div>
+        <p class="font-sans text-fp-muted text-sm leading-relaxed mb-6" x-text="selectedService.description"></p>
+        <div x-show="quoteStep === 1" class="space-y-3 mb-6">
+          <input type="text" x-model="quoteForm.name" placeholder="Tu nombre completo" class="w-full bg-fp-black border border-fp-gold/20 focus:border-fp-gold text-fp-cream rounded-xl px-4 py-3 text-sm outline-none smooth placeholder:text-fp-muted">
+          <input type="tel" x-model="quoteForm.phone" placeholder="Tu WhatsApp (opcional)" class="w-full bg-fp-black border border-fp-gold/20 focus:border-fp-gold text-fp-cream rounded-xl px-4 py-3 text-sm outline-none smooth placeholder:text-fp-muted">
+          <input type="text" x-model="quoteForm.date" placeholder="Fecha del evento o entrega" class="w-full bg-fp-black border border-fp-gold/20 focus:border-fp-gold text-fp-cream rounded-xl px-4 py-3 text-sm outline-none smooth placeholder:text-fp-muted">
+          <button @click="nextStep()" class="w-full inline-flex items-center justify-center gap-2 bg-fp-gold hover:bg-fp-goldLight text-fp-black py-3.5 rounded-xl font-sans font-semibold text-sm tracking-[.1em] uppercase smooth">Continuar <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+        </div>
+        <div x-show="quoteStep === 2" class="space-y-3 mb-6">
+          <textarea x-model="quoteForm.notes" placeholder="Contame tu visión: colores, cantidades, presupuesto aproximado..." rows="4" class="w-full bg-fp-black border border-fp-gold/20 focus:border-fp-gold text-fp-cream rounded-xl px-4 py-3 text-sm outline-none smooth placeholder:text-fp-muted"></textarea>
+          <div class="grid grid-cols-3 gap-2">
+            <button @click="quoteForm.urgency = 'normal'" :class="quoteForm.urgency === 'normal' ? 'border-fp-gold text-fp-gold' : 'border-fp-gold/20 text-fp-muted'" class="border rounded-xl py-2 text-xs font-sans tracking-wider smooth">Normal</button>
+            <button @click="quoteForm.urgency = 'esta_semana'" :class="quoteForm.urgency === 'esta_semana' ? 'border-fp-gold text-fp-gold' : 'border-fp-gold/20 text-fp-muted'" class="border rounded-xl py-2 text-xs font-sans tracking-wider smooth">Esta semana</button>
+            <button @click="quoteForm.urgency = 'urgente'" :class="quoteForm.urgency === 'urgente' ? 'border-red-800 text-red-400' : 'border-fp-gold/20 text-fp-muted'" class="border rounded-xl py-2 text-xs font-sans tracking-wider smooth">Urgente</button>
+          </div>
+          <div class="flex gap-2">
+            <button @click="quoteStep = 1" class="flex-1 border border-fp-gold/20 text-fp-muted py-3.5 rounded-xl font-sans text-sm smooth hover:border-fp-gold hover:text-fp-cream">Atrás</button>
+            <button @click="sendQuote()" class="flex-[2] inline-flex items-center justify-center gap-2 bg-fp-gold hover:bg-fp-goldLight text-fp-black py-3.5 rounded-xl font-sans font-semibold text-sm tracking-[.1em] uppercase smooth"><i data-lucide="message-circle" class="w-4 h-4"></i> Enviar por WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- Panel Admin -->
+<div x-show="adminOpen" x-transition.opacity class="fixed inset-0 z-[60] bg-fp-black/80 backdrop-blur-sm" @click.self="adminOpen = false">
+  <div x-show="adminOpen" x-transition class="absolute right-0 top-0 h-full w-full max-w-xl bg-[#0d0d0d] border-l border-fp-gold/10 flex flex-col">
+    <div class="flex items-center justify-between p-5 border-b border-fp-gold/10">
+      <h3 class="font-display text-fp-cream flex items-center gap-2 text-lg"><i data-lucide="settings" class="w-4 h-4 text-fp-gold" aria-hidden="true"></i> Panel FIFAPARTY</h3>
+      <div class="flex items-center gap-2">
+        <button x-show="isLogged" @click="logout()" class="text-xs font-sans text-fp-muted hover:text-red-400 flex items-center gap-1.5 smooth"><i data-lucide="log-out" class="w-4 h-4" aria-hidden="true"></i> Salir</button>
+        <button @click="adminOpen = false" class="p-2 hover:bg-fp-gold/5 rounded-lg smooth" aria-label="Cerrar"><i data-lucide="x" class="w-5 h-5 text-fp-muted"></i></button>
+      </div>
+    </div>
+    <div x-show="!isLogged" class="flex-1 grid place-items-center p-8">
+      <div class="w-full max-w-sm text-center">
+        <i data-lucide="lock" class="w-10 h-10 text-fp-gold mx-auto mb-4" aria-hidden="true"></i>
+        <h4 class="font-display text-fp-cream text-xl mb-4">Acceso al panel</h4>
+        <input type="password" x-model="passwordInput" @keydown.enter="login()" placeholder="Clave de acceso" class="w-full bg-fp-black border border-fp-gold/20 focus:border-fp-gold text-fp-cream rounded-xl px-4 py-3 text-sm text-center outline-none smooth">
+        <p x-show="loginError" class="text-red-400 text-xs mt-2" role="alert">Clave incorrecta.</p>
+        <button @click="login()" class="w-full mt-4 bg-fp-gold hover:bg-fp-goldLight text-fp-black py-3.5 rounded-xl font-sans font-semibold smooth">Entrar</button>
+      </div>
+    </div>
+    <div x-show="isLogged" class="flex-1 overflow-y-auto no-scrollbar">
+      <div class="flex border-b border-fp-gold/10 px-5 sticky top-0 bg-[#0d0d0d] z-10 overflow-x-auto no-scrollbar">
+        <button @click="adminTab = 'store'" :class="adminTab === 'store' ? 'border-fp-gold text-fp-gold' : 'border-transparent text-fp-muted'" class="px-4 py-3 text-xs font-sans tracking-widest border-b-2 smooth whitespace-nowrap uppercase">Negocio</button>
+        <button @click="adminTab = 'gallery'" :class="adminTab === 'gallery' ? 'border-fp-gold text-fp-gold' : 'border-transparent text-fp-muted'" class="px-4 py-3 text-xs font-sans tracking-widest border-b-2 smooth whitespace-nowrap uppercase">Galería</button>
+        <button @click="adminTab = 'services'" :class="adminTab === 'services' ? 'border-fp-gold text-fp-gold' : 'border-transparent text-fp-muted'" class="px-4 py-3 text-xs font-sans tracking-widest border-b-2 smooth whitespace-nowrap uppercase">Servicios</button>
+        <button @click="adminTab = 'security'" :class="adminTab === 'security' ? 'border-fp-gold text-fp-gold' : 'border-transparent text-fp-muted'" class="px-4 py-3 text-xs font-sans tracking-widest border-b-2 smooth whitespace-nowrap uppercase">Clave</button>
+        <button @click="adminTab = 'whatsapp'" :class="adminTab === 'whatsapp' ? 'border-fp-gold text-fp-gold' : 'border-transparent text-fp-muted'" class="px-4 py-3 text-xs font-sans tracking-widest border-b-2 smooth whitespace-nowrap uppercase">WhatsApp IA</button>
+      </div>
+      <div x-show="adminTab === 'store'" class="p-5 space-y-3">
+        <div><label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Nombre de la marca</label><input type="text" x-model="adminData.brandName" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth"></div>
+        <div><label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Tagline</label><input type="text" x-model="adminData.tagline" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth"></div>
+        <div><label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">WhatsApp</label><input type="tel" x-model="adminData.whatsappNumber" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth"></div>
+        <div><label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Descripción</label><textarea x-model="adminData.description" rows="3" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth"></textarea></div>
+        <button @click="saveStore()" class="w-full bg-fp-gold hover:bg-fp-goldLight text-fp-black py-3 rounded-xl font-sans font-semibold text-sm smooth">Guardar cambios</button>
+      </div>
+      <div x-show="adminTab === 'gallery'" class="p-5 space-y-4">
+        <p class="text-xs text-fp-muted font-sans">Subí fotos de tus creaciones. Se muestran en la sección Galería.</p>
+        <label class="img-upload-zone flex flex-col items-center justify-center p-8 text-center">
+          <i data-lucide="upload-cloud" class="w-8 h-8 text-fp-gold/50 mb-2" aria-hidden="true"></i>
+          <p class="text-xs font-sans text-fp-muted">Hacé clic o arrastrá una imagen</p>
+          <p class="text-[10px] font-sans text-fp-muted/50 mt-1">PNG, JPG, WEBP · Máx. 5MB</p>
+          <input type="file" accept="image/*" multiple class="hidden" @change="uploadImages($event)">
+        </label>
+        <div class="grid grid-cols-3 gap-2">
+          <template x-for="(img, idx) in gallery" :key="idx">
+            <div class="relative aspect-square rounded-lg overflow-hidden group">
+              <img :src="img.url" :alt="img.caption || ''" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-fp-black/60 opacity-0 group-hover:opacity-100 smooth flex items-center justify-center">
+                <button @click="removeImage(idx)" class="p-1.5 bg-red-900/80 rounded-lg" aria-label="Eliminar imagen"><i data-lucide="trash-2" class="w-4 h-4 text-red-300" aria-hidden="true"></i></button>
+              </div>
+              <input type="text" placeholder="Descripción..." x-model="gallery[idx].caption" @change="saveGallery()" class="absolute bottom-0 left-0 right-0 bg-fp-black/80 text-fp-cream text-[10px] px-2 py-1 outline-none border-t border-fp-gold/10">
+            </div>
+          </template>
+        </div>
+        <p x-show="gallery.length === 0" class="text-[11px] text-fp-muted/50 text-center font-sans">No hay imágenes aún</p>
+      </div>
+      <div x-show="adminTab === 'services'" class="p-5 space-y-3">
+        <p class="text-xs text-fp-muted font-sans">Tocá cada servicio para agregarle una foto. Se muestra en la tarjeta de la web.</p>
+        <div class="space-y-3">
+          <template x-for="(s, idx) in services" :key="s.id">
+            <div class="border border-fp-gold/10 rounded-xl overflow-hidden">
+              <!-- Cabecera del servicio -->
+              <div class="p-3 flex items-center justify-between cursor-pointer hover:bg-fp-gold/5 smooth"
+                   @click="expandedService = expandedService === s.id ? null : s.id">
+                <div class="flex items-center gap-3">
+                  <!-- Mini preview de foto -->
+                  <div class="w-10 h-10 rounded-lg overflow-hidden bg-[#0d0d0d] border border-fp-gold/10 flex items-center justify-center flex-shrink-0">
+                    <template x-if="s.image">
+                      <img :src="s.image" :alt="s.name" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="!s.image">
+                      <i data-lucide="image" class="w-4 h-4 text-fp-muted/40"></i>
+                    </template>
+                  </div>
+                  <div>
+                    <p class="text-sm text-fp-cream font-display" x-text="s.name"></p>
+                    <p class="text-[10px] text-fp-muted font-sans" x-text="s.image ? 'Foto cargada ✓' : 'Sin foto'"></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span x-show="s.featured" class="text-[10px] border border-fp-gold/30 text-fp-gold px-2 py-0.5 rounded-full font-sans">Exclusivo</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-fp-muted smooth" :class="expandedService === s.id ? 'rotate-180' : ''"></i>
+                </div>
+              </div>
+              <!-- Panel expandible con upload -->
+              <div x-show="expandedService === s.id" x-transition class="border-t border-fp-gold/10 p-3 space-y-3">
+                <!-- Preview grande si tiene foto -->
+                <template x-if="s.image">
+                  <div class="relative rounded-lg overflow-hidden aspect-video">
+                    <img :src="s.image" :alt="s.name" class="w-full h-full object-cover">
+                    <button @click="removeServiceImage(idx)"
+                            class="absolute top-2 right-2 bg-red-900/80 rounded-lg p-1.5 hover:bg-red-800 smooth"
+                            aria-label="Quitar foto">
+                      <i data-lucide="trash-2" class="w-4 h-4 text-red-300"></i>
+                    </button>
+                  </div>
+                </template>
+                <!-- Zona de upload -->
+                <label class="img-upload-zone flex flex-col items-center justify-center p-5 text-center">
+                  <i data-lucide="upload-cloud" class="w-6 h-6 text-fp-gold/50 mb-1" aria-hidden="true"></i>
+                  <p class="text-xs font-sans text-fp-muted" x-text="s.image ? 'Cambiar foto' : 'Subir foto'"></p>
+                  <p class="text-[10px] font-sans text-fp-muted/50 mt-0.5">PNG, JPG, WEBP · Máx. 5MB</p>
+                  <input type="file" accept="image/*" class="hidden" @change="uploadServiceImage($event, idx)">
+                </label>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <div x-show="adminTab === 'security'" class="p-5 space-y-3">
+        <div><label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Nueva clave</label><input type="password" x-model="newPassword" placeholder="Nueva clave" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth"></div>
+        <button @click="changePassword()" class="w-full bg-fp-gold hover:bg-fp-goldLight text-fp-black py-3 rounded-xl font-sans font-semibold text-sm smooth">Cambiar clave</button>
+      </div>
+
+      <!-- TAB WHATSAPP IA -->
+      <div x-show="adminTab === 'whatsapp'" class="p-5 space-y-4">
+        <div class="bg-[#0a0a0a] border border-fp-gold/10 rounded-xl p-3 text-xs font-sans text-fp-muted leading-relaxed">
+          ✦ Completá la info de tu negocio y Claude genera los textos listos para copiar en WhatsApp Business. En español e inglés automático.
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Tus servicios y precios</label>
+            <textarea x-model="waConfig.servicios" rows="4" placeholder="Ej: Bouquet de rosas desde $800, Decoración para eventos desde $5000..." class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth placeholder:text-fp-muted/50"></textarea>
+          </div>
+          <div>
+            <label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Horarios de atención</label>
+            <input type="text" x-model="waConfig.horarios" placeholder="Ej: Lunes a viernes 9 a 18hs, Sábados 9 a 14hs" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth placeholder:text-fp-muted/50">
+          </div>
+          <div>
+            <label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Zona de entrega</label>
+            <input type="text" x-model="waConfig.zona" placeholder="Ej: Santo Domingo y área metropolitana" class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth placeholder:text-fp-muted/50">
+          </div>
+          <div>
+            <label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Tiempo de entrega o preparación</label>
+            <input type="text" x-model="waConfig.tiempoEntrega" placeholder="Ej: Pedidos con 48hs de anticipación. Urgentes consultar disponibilidad." class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth placeholder:text-fp-muted/50">
+          </div>
+          <div>
+            <label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Formas de pago</label>
+            <input type="text" x-model="waConfig.pagos" placeholder="Ej: Efectivo, transferencia, tarjeta. 50% seña para eventos." class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth placeholder:text-fp-muted/50">
+          </div>
+          <div>
+            <label class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Algo especial que querés destacar</label>
+            <textarea x-model="waConfig.extra" rows="2" placeholder="Ej: Rosas importadas. Atención personalizada para cada evento." class="w-full mt-1 bg-fp-black border border-fp-gold/15 text-fp-cream rounded-xl px-3 py-2.5 text-sm outline-none focus:border-fp-gold smooth placeholder:text-fp-muted/50"></textarea>
+          </div>
+        </div>
+        <button @click="generarRespuestasWA()" :disabled="waGenerando" class="w-full bg-fp-gold hover:bg-fp-goldLight disabled:opacity-50 text-fp-black py-3.5 rounded-xl font-sans font-semibold text-sm smooth flex items-center justify-center gap-2">
+          <template x-if="!waGenerando"><span class="flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4"></i> Generar textos con IA</span></template>
+          <template x-if="waGenerando"><span>Generando...</span></template>
+        </button>
+        <template x-if="waResultados">
+          <div class="space-y-3">
+            <p class="text-[10px] font-sans text-fp-muted uppercase tracking-widest">Textos listos para WhatsApp Business</p>
+            <div class="bg-fp-black border border-fp-gold/10 rounded-xl p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] text-fp-gold font-sans uppercase tracking-widest">Bienvenida — Español</span>
+                <button @click="copiarTexto(waResultados.bienvenidaES)" class="text-[10px] text-fp-muted hover:text-fp-gold smooth flex items-center gap-1"><i data-lucide="copy" class="w-3 h-3"></i> Copiar</button>
+              </div>
+              <p class="text-xs text-fp-cream/80 font-sans leading-relaxed whitespace-pre-wrap" x-text="waResultados.bienvenidaES"></p>
+            </div>
+            <div class="bg-fp-black border border-fp-gold/10 rounded-xl p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] text-fp-gold font-sans uppercase tracking-widest">Welcome — English</span>
+                <button @click="copiarTexto(waResultados.bienvenidaEN)" class="text-[10px] text-fp-muted hover:text-fp-gold smooth flex items-center gap-1"><i data-lucide="copy" class="w-3 h-3"></i> Copy</button>
+              </div>
+              <p class="text-xs text-fp-cream/80 font-sans leading-relaxed whitespace-pre-wrap" x-text="waResultados.bienvenidaEN"></p>
+            </div>
+            <div class="bg-fp-black border border-fp-gold/10 rounded-xl p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] text-fp-gold font-sans uppercase tracking-widest">Mensaje de ausencia</span>
+                <button @click="copiarTexto(waResultados.ausencia)" class="text-[10px] text-fp-muted hover:text-fp-gold smooth flex items-center gap-1"><i data-lucide="copy" class="w-3 h-3"></i> Copiar</button>
+              </div>
+              <p class="text-xs text-fp-cream/80 font-sans leading-relaxed whitespace-pre-wrap" x-text="waResultados.ausencia"></p>
+            </div>
+            <div class="bg-fp-black border border-fp-gold/10 rounded-xl p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] text-fp-gold font-sans uppercase tracking-widest">Respuestas rápidas</span>
+                <button @click="copiarTexto(waResultados.rapidas)" class="text-[10px] text-fp-muted hover:text-fp-gold smooth flex items-center gap-1"><i data-lucide="copy" class="w-3 h-3"></i> Copiar</button>
+              </div>
+              <p class="text-xs text-fp-cream/80 font-sans leading-relaxed whitespace-pre-wrap" x-text="waResultados.rapidas"></p>
+            </div>
+            <div class="bg-[#0a0a0a] border border-fp-gold/10 rounded-xl p-3 text-[11px] font-sans text-fp-muted leading-relaxed">
+              💡 <strong class="text-fp-cream">Cómo usarlos:</strong> WhatsApp Business → Configuración → Herramientas para la empresa → pegá cada texto. WhatsApp los manda automático.
+            </div>
+          </div>
+        </template>
+        <template x-if="waError">
+          <div class="bg-red-900/20 border border-red-800/30 rounded-xl p-3 text-xs text-red-400 font-sans" x-text="waError"></div>
+        </template>
+      </div>
+      <div class="p-5 border-t border-fp-gold/10">
+        <p class="text-[10px] text-fp-muted font-sans mb-3">Exportá para guardar cambios permanentes.</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button @click="exportConfig()" class="bg-fp-gold/5 hover:bg-fp-gold/10 border border-fp-gold/15 py-2.5 rounded-xl text-[10px] font-sans tracking-widest uppercase smooth flex items-center justify-center gap-2 text-fp-muted"><i data-lucide="download" class="w-3.5 h-3.5" aria-hidden="true"></i> config.js</button>
+          <button @click="exportServices()" class="bg-fp-gold/5 hover:bg-fp-gold/10 border border-fp-gold/15 py-2.5 rounded-xl text-[10px] font-sans tracking-widest uppercase smooth flex items-center justify-center gap-2 text-fp-muted"><i data-lucide="download" class="w-3.5 h-3.5" aria-hidden="true"></i> services.js</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+function fifaApp() {
+  return {
+    store: {}, services: [], gallery: [],
+    scrolled: false, mobileMenu: false,
+    selectedService: null, quoteStep: 1,
+    quoteForm: { name: '', phone: '', date: '', notes: '', urgency: 'normal' },
+    adminOpen: false, isLogged: false,
+    passwordInput: '', loginError: false,
+    adminTab: 'store', adminData: {}, newPassword: '',
+    lightboxOpen: false, lightboxImg: null, expandedService: null,
+    waConfig: { servicios: '', horarios: '', zona: '', tiempoEntrega: '', pagos: '', extra: '' },
+    waResultados: null, waGenerando: false, waError: null,
+
+    cargando: false,
+
+    async init() {
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
+      try {
+        const [cfgRemoto, servsRemoto, galRemota] = await Promise.race([
+          Promise.all([sbCargarConfig(), sbCargarServicios(), sbCargarGaleria()]),
+          timeout.then(() => { throw new Error('timeout'); })
+        ]);
+        this.store = cfgRemoto || JSON.parse(localStorage.getItem('fifaparty_config') || 'null') || JSON.parse(JSON.stringify(window.STORE_CONFIG || {}));
+        this.services = servsRemoto.length > 0 ? servsRemoto : JSON.parse(localStorage.getItem('fifaparty_services') || 'null') || JSON.parse(JSON.stringify(window.SERVICES_DATA || []));
+        this.gallery = galRemota.length > 0 ? galRemota : JSON.parse(localStorage.getItem('fifaparty_gallery') || '[]');
+      } catch(e) {
+        const sc = localStorage.getItem('fifaparty_config');
+        this.store = sc ? JSON.parse(sc) : JSON.parse(JSON.stringify(window.STORE_CONFIG || {}));
+        const ss = localStorage.getItem('fifaparty_services');
+        this.services = ss ? JSON.parse(ss) : JSON.parse(JSON.stringify(window.SERVICES_DATA || []));
+        const sg = localStorage.getItem('fifaparty_gallery');
+        this.gallery = sg ? JSON.parse(sg) : [];
+      }
+      if (!this.store.categories) this.store.categories = [];
+      if (!this.store.testimonials) this.store.testimonials = [];
+      const sw = localStorage.getItem('fifaparty_wa_config');
+      if (sw) this.waConfig = JSON.parse(sw);
+      this.cargando = false;
+      this.resetAdminData();
+      window.addEventListener('scroll', () => { this.scrolled = window.scrollY > 60; });
+      this.$nextTick(() => { lucide.createIcons(); this.setupReveal(); });
+    },
+
+    setupReveal() {
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('[data-reveal]').forEach(el => obs.observe(el));
+    },
+
+    groupedServices() {
+      const order = []; const map = {};
+      this.services.forEach(s => {
+        const cat = (window.STORE_CONFIG?.categories || []).find(c => c.id === s.category);
+        const catName = cat ? cat.name : s.category;
+        if (!map[catName]) { map[catName] = { category: catName, categoryId: s.category, items: [] }; order.push(catName); }
+        map[catName].items.push(s);
+      });
+      const result = order.map(c => map[c]);
+      this.$nextTick(() => lucide.createIcons());
+      return result;
+    },
+
+    waLink(text) { return `https://wa.me/${this.store.whatsappNumber}?text=${encodeURIComponent(text)}`; },
+
+    openService(service) {
+      this.selectedService = service;
+      this.quoteStep = 1;
+      this.quoteForm = { name: '', phone: '', date: '', notes: '', urgency: 'normal' };
+      this.$nextTick(() => lucide.createIcons());
+    },
+
+    nextStep() {
+      if (!this.quoteForm.name.trim()) { alert('Por favor ingresá tu nombre.'); return; }
+      this.quoteStep = 2;
+      this.$nextTick(() => lucide.createIcons());
+    },
+
+    sendQuote() {
+      const urgencyMap = { normal: 'Sin urgencia', esta_semana: 'Esta semana', urgente: '⚡ URGENTE' };
+      let text = `*Cotización FIFAPARTY*\n\nServicio: ${this.selectedService.name}\nNombre: ${this.quoteForm.name}`;
+      if (this.quoteForm.phone) text += `\nTeléfono: ${this.quoteForm.phone}`;
+      if (this.quoteForm.date) text += `\nFecha: ${this.quoteForm.date}`;
+      if (this.quoteForm.notes) text += `\nDetalles: ${this.quoteForm.notes}`;
+      text += `\nUrgencia: ${urgencyMap[this.quoteForm.urgency] || 'Normal'}`;
+      text += `\n\n¡Me encantaría conocer más sobre este servicio!`;
+      window.open(this.waLink(text), '_blank');
+      this.selectedService = null;
+    },
+
+    uploadImages(event) {
+      const files = Array.from(event.target.files);
+      files.forEach(file => {
+        if (file.size > 5 * 1024 * 1024) { alert(`${file.name} supera los 5MB.`); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.gallery.push({ url: e.target.result, caption: '' });
+          this.saveGallery();
+          this.$nextTick(() => lucide.createIcons());
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+
+    removeImage(idx) { this.gallery.splice(idx, 1); this.saveGallery(); },
+
+    uploadServiceImage(event, idx) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert("La foto supera los 5MB."); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.services[idx].image = e.target.result;
+        this.saveServices();
+        this.$nextTick(() => lucide.createIcons());
+      };
+      reader.readAsDataURL(file);
+    },
+
+    removeServiceImage(idx) {
+      this.services[idx].image = "";
+      this.saveServices();
+    },
+
+    saveServices() {
+      try { localStorage.setItem("fifaparty_services", JSON.stringify(this.services)); }
+      catch(e) { alert("Almacenamiento lleno. Eliminá algunas fotos."); }
+    },
+
+    saveGallery() {
+      try {
+        localStorage.setItem('fifaparty_gallery', JSON.stringify(this.gallery));
+        await sbGuardarGaleria(this.gallery);
+      } catch(e) { console.warn('Error guardando galería:', e); }
+    },
+
+    login() {
+      if (this.passwordInput === (this.store.adminPassword || 'fifaparty2026')) {
+        this.isLogged = true; this.loginError = false; this.passwordInput = '';
+        this.resetAdminData(); this.$nextTick(() => lucide.createIcons());
+      } else { this.loginError = true; }
+    },
+    logout() { this.isLogged = false; },
+
+    resetAdminData() {
+      this.adminData = { brandName: this.store.brandName || 'FIFAPARTY', tagline: this.store.tagline || '', whatsappNumber: this.store.whatsappNumber || '', description: this.store.description || '' };
+    },
+
+    saveStore() {
+      Object.assign(this.store, this.adminData);
+      localStorage.setItem('fifaparty_config', JSON.stringify(this.store));
+      alert('¡Guardado!');
+    },
+
+    changePassword() {
+      if (!this.newPassword.trim()) { alert('Escribí una clave'); return; }
+      this.store.adminPassword = this.newPassword.trim();
+      localStorage.setItem('fifaparty_config', JSON.stringify(this.store));
+      this.newPassword = ''; alert('Clave actualizada.');
+    },
+
+    exportConfig() {
+      const c = `const STORE_CONFIG = ${JSON.stringify(this.store, null, 2)};\nif (typeof module !== 'undefined' && module.exports) { module.exports = STORE_CONFIG; } else { window.STORE_CONFIG = STORE_CONFIG; }\n`;
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([c], {type:'text/javascript'})); a.download = 'config.js'; a.click();
+    },
+    async generarRespuestasWA() {
+      if (!this.waConfig.servicios.trim()) { alert('Completá al menos los servicios y precios.'); return; }
+      this.waGenerando = true; this.waError = null; this.waResultados = null;
+      const prompt = `Sos el asistente de FIFAPARTY, una floristería y empresa de eventos de lujo en República Dominicana.
+
+Información del negocio:
+- Servicios y precios: ${this.waConfig.servicios}
+- Horarios: ${this.waConfig.horarios || 'No especificado'}
+- Zona de entrega: ${this.waConfig.zona || 'No especificado'}
+- Tiempo de entrega: ${this.waConfig.tiempoEntrega || 'No especificado'}
+- Formas de pago: ${this.waConfig.pagos || 'No especificado'}
+- Destacar: ${this.waConfig.extra || 'Nada adicional'}
+
+Generá exactamente este JSON (sin markdown, sin explicaciones, solo el JSON):
+{
+  "bienvenidaES": "Mensaje de bienvenida en español, cálido y elegante, máximo 3 párrafos. Mencioná los servicios principales y que se comunicarán a la brevedad para cerrar detalles.",
+  "bienvenidaEN": "Same welcome message in English, warm and elegant, max 3 paragraphs.",
+  "ausencia": "Mensaje de ausencia en español e inglés indicando horarios y que responderán lo antes posible.",
+  "rapidas": "3 respuestas rápidas numeradas: 1) Lista de servicios con precios, 2) Info de pedidos y entrega, 3) Formas de pago y seña."
+}`;
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || '';
+        const clean = text.replace(/```json|```/g, '').trim();
+        this.waResultados = JSON.parse(clean);
+        localStorage.setItem('fifaparty_wa_config', JSON.stringify(this.waConfig));
+        this.$nextTick(() => lucide.createIcons());
+      } catch(e) {
+        this.waError = 'No se pudo generar. Verificá que la API key de Anthropic esté activa en el servidor. Error: ' + e.message;
+      }
+      this.waGenerando = false;
+    },
+
+    copiarTexto(texto) {
+      navigator.clipboard.writeText(texto).then(() => { alert('¡Copiado! Pegalo en WhatsApp Business.'); });
+    },
+
+    exportServices() {
+      const c = `const SERVICES_DATA = ${JSON.stringify(this.services, null, 2)};\nif (typeof module !== 'undefined' && module.exports) { module.exports = SERVICES_DATA; } else { window.SERVICES_DATA = SERVICES_DATA; }\n`;
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([c], {type:'text/javascript'})); a.download = 'services.js'; a.click();
+    }
+  };
+}
+</script>
+</body>
+</html>
