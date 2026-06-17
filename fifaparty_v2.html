@@ -14,8 +14,8 @@
 <script src="services.js"></script>
 <script>
   // Supabase config
-  const SUPABASE_URL = 'https://erjrvwrqujuzmxtkhvrw.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_o2woVUsiumTBfeHTIuJlEQ_l1k57h0R';
+  const SUPABASE_URL = 'https://tijfounmgknzejdlmymw.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_35hx6BdVzYh1oTAiZSXJ1w_ebGfdMdB';
   const TIENDA_ID = 'fifaparty';
 
   async function sbFetch(path, options = {}) {
@@ -701,9 +701,11 @@ function fifaApp() {
     cargando: true,
 
     async init() {
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000));
       try {
-        const [cfgRemoto, servsRemoto, galRemota] = await Promise.all([
-          sbCargarConfig(), sbCargarServicios(), sbCargarGaleria()
+        const [cfgRemoto, servsRemoto, galRemota] = await Promise.race([
+          Promise.all([sbCargarConfig(), sbCargarServicios(), sbCargarGaleria()]),
+          timeout.then(() => { throw new Error('timeout'); })
         ]);
         this.store = cfgRemoto || JSON.parse(localStorage.getItem('fifaparty_config') || 'null') || JSON.parse(JSON.stringify(window.STORE_CONFIG || {}));
         this.services = servsRemoto.length > 0 ? servsRemoto : JSON.parse(localStorage.getItem('fifaparty_services') || 'null') || JSON.parse(JSON.stringify(window.SERVICES_DATA || []));
