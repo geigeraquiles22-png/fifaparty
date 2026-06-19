@@ -727,10 +727,12 @@ function fifaApp() {
     lightboxOpen: false, lightboxImg: null, expandedService: null,
     waConfig: { servicios: '', horarios: '', zona: '', tiempoEntrega: '', pagos: '', extra: '' },
     waResultados: null, waGenerando: false, waError: null,
+    _sb: null,
 
     cargando: false,
 
     init() {
+      this._sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       const sc = localStorage.getItem('fifaparty_config');
       this.store = sc ? JSON.parse(sc) : JSON.parse(JSON.stringify(window.STORE_CONFIG || {}));
       const ss = localStorage.getItem('fifaparty_services');
@@ -800,33 +802,64 @@ function fifaApp() {
       this.selectedService = null;
     },
 
-    uploadImages(event) {
-      const files = Array.from(event.target.files);
-      files.forEach(file => {
-        if (file.size > 5 * 1024 * 1024) { alert(`${file.name} supera los 5MB.`); return; }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.gallery.push({ url: e.target.result, caption: '' });
-          this.saveGallery();
-          this.$nextTick(() => lucide.createIcons());
+    async compressImage(file, maxWidth = 900, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          const ratio = Math.min(maxWidth / img.width, 1);
+          const canvas = document.createElement('canvas');
+          canvas.width  = Math.round(img.width  * ratio);
+          canvas.height = Math.round(img.height * ratio);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            URL.revokeObjectURL(objectUrl);
+            blob ? resolve(blob) : reject(new Error('Canvas toBlob falló'));
+          }, 'image/webp', quality);
         };
-        reader.readAsDataURL(file);
+        img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Error cargando imagen')); };
+        img.src = objectUrl;
       });
+    },
+    async uploadToStorage(file, folder = TIENDA_ID) {
+      const blob = await this.compressImage(file);
+      const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
+      const { data, error } = await this._sb.storage.from('tienda-images').upload(path, blob, {
+        contentType: 'image/webp', upsert: false
+      });
+      if (error) throw error;
+      const { data: { publicUrl } } = this._sb.storage.from('tienda-images').getPublicUrl(data.path);
+      return publicUrl;
+    },
+    async uploadImages(event) {
+      const files = Array.from(event.target.files);
+      for (const file of files) {
+        if (file.size > 5 * 1024 * 1024) { alert(`${file.name} supera los 5MB.`); continue; }
+        try {
+          const url = await this.uploadToStorage(file);
+          this.gallery.push({ url, caption: '' });
+          await this.saveGallery();
+          this.$nextTick(() => lucide.createIcons());
+        } catch(err) {
+          console.error('Error subiendo imagen de galería:', err);
+          alert(`No se pudo subir ${file.name}. Verificá tu conexión.`);
+        }
+      }
     },
 
     removeImage(idx) { this.gallery.splice(idx, 1); this.saveGallery(); },
 
-    uploadServiceImage(event, idx) {
+    async uploadServiceImage(event, idx) {
       const file = event.target.files[0];
       if (!file) return;
-      if (file.size > 5 * 1024 * 1024) { alert("La foto supera los 5MB."); return; }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.services[idx].image = e.target.result;
-        this.saveServices();
+      try {
+        this.services[idx].image = await this.uploadToStorage(file);
+        await this.saveServices();
         this.$nextTick(() => lucide.createIcons());
-      };
-      reader.readAsDataURL(file);
+      } catch(err) {
+        console.error('Error subiendo imagen del servicio:', err);
+        alert('No se pudo subir la foto. Verificá tu conexión.');
+      }
     },
 
     removeServiceImage(idx) {
@@ -834,12 +867,14 @@ function fifaApp() {
       this.saveServices();
     },
 
-    saveServices() {
-      try { localStorage.setItem("fifaparty_services", JSON.stringify(this.services)); }
-      catch(e) { alert("Almacenamiento lleno. Eliminá algunas fotos."); }
+    async saveServices() {
+      try {
+        localStorage.setItem("fifaparty_services", JSON.stringify(this.services));
+        await sbGuardarServicios(this.services);
+      } catch(e) { alert("Almacenamiento lleno. Eliminá algunas fotos."); }
     },
 
-    saveGallery() {
+    async saveGallery() {
       try {
         localStorage.setItem('fifaparty_gallery', JSON.stringify(this.gallery));
         await sbGuardarGaleria(this.gallery);
@@ -858,9 +893,10 @@ function fifaApp() {
       this.adminData = { brandName: this.store.brandName || 'FIFAPARTY', tagline: this.store.tagline || '', whatsappNumber: this.store.whatsappNumber || '', description: this.store.description || '' };
     },
 
-    saveStore() {
+    async saveStore() {
       Object.assign(this.store, this.adminData);
       localStorage.setItem('fifaparty_config', JSON.stringify(this.store));
+      await sbGuardarConfig(this.store);
       alert('¡Guardado!');
     },
 
@@ -925,6 +961,7 @@ Generá exactamente este JSON (sin markdown, sin explicaciones, solo el JSON):
   };
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
